@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="color-scheme" content="light dark">
+  <title>ZIROQ</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234f46e5'/%3E%3Cpath d='M9 9h14l-9 14h9' stroke='white' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <strong class="brand">ZIROQ</strong>
+    <span id="who" class="who"></span>
+    <button id="signout" class="ghost small" hidden>Sign out</button>
+  </header>
+
+  <main id="app" aria-live="polite">
+    <section id="view-signin" class="card center" hidden>
+      <h1>Welcome</h1>
+      <p>Sign in with the Google account that owns this ZIROQ.</p>
+      <button id="signin" class="primary">Sign in with Google</button>
+      <p id="signin-msg" class="muted"></p>
+    </section>
+
+    <section id="view-config" class="card" hidden>
+      <h1>Setup not finished</h1>
+      <p>Open <code>docs/firebase-config.js</code> in your GitHub repository and paste your Firebase values (SETUP GUIDE, step 3).</p>
+    </section>
+
+    <div id="view-main" hidden>
+      <nav class="tabs" role="tablist">
+        <button data-tab="make" class="tab on">Make</button>
+        <button data-tab="jobs" class="tab">Jobs</button>
+        <button data-tab="clips" class="tab">Clips</button>
+        <button data-tab="settings" class="tab">Settings</button>
+      </nav>
+
+      <section id="tab-make">
+        <div id="banner" class="banner" hidden></div>
+        <div class="card">
+          <h1>Make clips from a YouTube video</h1>
+          <label for="url">YouTube link</label>
+          <input id="url" type="url" inputmode="url" autocomplete="off" placeholder="https://www.youtube.com/watch?v=...">
+          <p id="url-msg" class="msg" role="alert"></p>
+          <button id="make" class="primary">Make clips</button>
+          <button id="start" class="secondary">Start worker now</button>
+          <p class="muted" id="start-msg">Jobs start by themselves within about 15 minutes. "Start worker now" starts them immediately (needs the GitHub token in Settings).</p>
+        </div>
+        <div class="card warn">
+          <strong>Before you use someone else's video</strong>
+          <p>Re-uploading other people's content can trigger Content ID or copyright claims. Shorts longer than 60 seconds with an active Content ID claim can be blocked worldwide. You are responsible for having the right to use each source. ZIROQ never posts anything for you.</p>
+        </div>
+      </section>
+
+      <section id="tab-jobs" hidden><div id="jobs"></div></section>
+      <section id="tab-clips" hidden><div id="clips"></div></section>
+
+      <section id="tab-settings" hidden>
+        <div class="card">
+          <h1>Gemini and your data</h1>
+          <p id="consent-text"></p>
+          <label class="check"><input id="consent" type="checkbox"> <span>I understand and allow ZIROQ to send transcripts to Gemini</span></label>
+          <p class="muted" id="consent-state"></p>
+        </div>
+        <div class="card">
+          <h1>Limits</h1>
+          <label for="maxmin">Longest source video (minutes)</label>
+          <input id="maxmin" type="number" inputmode="numeric" min="5" max="180">
+          <label class="check"><input id="approval" type="checkbox"> <span>Ask me to approve before anything is final</span></label>
+          <button id="save-settings" class="primary">Save settings</button>
+          <p id="settings-msg" class="msg"></p>
+        </div>
+        <div class="card">
+          <h1>"Start worker now" (optional)</h1>
+          <p class="muted">A GitHub token with permission to run workflows on your worker repository. It is kept only in this browser and is never saved to the database.</p>
+          <label for="ghtoken">GitHub token</label>
+          <input id="ghtoken" type="password" autocomplete="off" placeholder="github_pat_...">
+          <button id="save-token" class="secondary">Save token on this phone</button>
+          <button id="clear-token" class="ghost">Remove token</button>
+          <p id="token-msg" class="msg"></p>
+        </div>
+        <div class="card">
+          <h1>Costs</h1>
+          <p>ZIROQ is built to cost nothing. Never link a billing account to your Firebase project (it must stay on the Spark plan) or to the Google projects that hold your Gemini keys.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="pack" class="sheet" hidden>
+    <div class="sheet-in">
+      <div class="sheet-top"><strong id="pack-title">Posting pack</strong><button id="pack-close" class="ghost small">Close</button></div>
+      <div id="pack-tabs" class="tabs small"></div>
+      <div id="pack-body"></div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

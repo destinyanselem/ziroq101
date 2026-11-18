@@ -1,0 +1,12 @@
+yt-dlp
+faster-whisper
+ctranslate2
+numpy
+scipy
+opencv-python-headless
+pillow
+requests
+scikit-learn
+tzdata
+google-genai>=2.3.0
+firebase-admin

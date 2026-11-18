@@ -1,0 +1,25 @@
+name: Unpack ZIROQ
+
+# One-time helper: you upload ziroq-system.zip to the repository, run this once, and it unpacks all the files for you.
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack the zip
+        run: |
+          test -f ziroq-system.zip || { echo "ziroq-system.zip was not found in the repository. Upload it first."; exit 1; }
+          unzip -o ziroq-system.zip
+          rm ziroq-system.zip
+      - name: Save the files
+        run: |
+          git config user.name "ziroq-unpack"
+          git config user.email "ziroq-unpack@users.noreply.github.com"
+          git add -A
+          git commit -m "Unpack ZIROQ files"
+          git push

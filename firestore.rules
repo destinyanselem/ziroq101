@@ -1,0 +1,57 @@
+rules_version = '2';
+
+// ZIROQ security rules. The worker uses the Admin SDK (service account), which bypasses these rules.
+// Everyone except the owner is locked out of everything.
+//
+// ONE EDIT NEEDED: replace  OWNER_EMAIL_HERE  (appears once, in isOwner) with your Gmail address, all lowercase.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'OWNER_EMAIL_HERE';
+    }
+
+    match /settings/owner {
+      allow read: if isOwner();
+      allow write: if isOwner()
+        && request.resource.data.keys().hasOnly(['geminiConsent', 'geminiConsentAt', 'geminiConsentTextVersion', 'requireApproval',
+                                                 'discoveryEnabled', 'maxSourceMinutes', 'dailyPostCount'])
+        && request.resource.data.geminiConsent is bool
+        && request.resource.data.requireApproval is bool
+        && request.resource.data.discoveryEnabled is bool
+        && request.resource.data.maxSourceMinutes is number
+        && request.resource.data.maxSourceMinutes >= 5 && request.resource.data.maxSourceMinutes <= 180;
+    }
+
+    match /jobs/{jobId} {
+      allow read: if isOwner();
+      // The website may only add a NEW queued job (a link), cancel a queued job, or delete one.
+      allow create: if isOwner()
+        && request.resource.data.keys().hasOnly(['url', 'origin', 'status', 'progress', 'stage', 'createdAt', 'updatedAt', 'tail'])
+        && request.resource.data.status == 'queued'
+        && request.resource.data.origin == 'manual'
+        && request.resource.data.url is string && request.resource.data.url.size() <= 300
+        && request.resource.data.progress == 0;
+      allow update: if isOwner()
+        && resource.data.status == 'queued'
+        && request.resource.data.status == 'cancelled'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'stage', 'updatedAt']);
+      allow delete: if isOwner() && resource.data.status != 'running';
+    }
+
+    match /clips/{clipId} {
+      allow read: if isOwner();
+      // The owner may only change a clip's review status (shortlist / reject / mark posted).
+      allow update: if isOwner()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['candidate', 'shortlisted', 'rejected', 'posted'];
+      allow create, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
