@@ -22,9 +22,9 @@ What you are building: a private website (GitHub Pages) → a job list (Firebase
 3. Open **Build → Authentication → Get started → Sign-in method → Google**. Enable Google sign-in, choose your support email, and save.
 4. In Authentication → **Settings → Authorized domains**, add `destinyanselem.github.io`.
 5. Open **Build → Firestore Database → Create database**. Choose a nearby region; `europe-west` is a reasonable choice from Nigeria. Start in production mode.
-6. In Firestore → **Rules**, paste the plain text contents of the repository's `firestore.rules` file (do not include Markdown fences or line numbers) and click **Publish**. The owner email is already configured in that file.
+6. In Firestore → **Rules**, paste the plain text contents of the repository's `firestore.rules` file (do not include Markdown fences or line numbers). In the editor only, replace `OWNER_EMAIL_HERE` with the lowercase Google account email that will own ZIROQ, then click **Publish**. Do not commit your real email to this public repository.
 7. Open **Project settings → General → Your apps**. Register a Web app named `ziroq-web` (or open the existing one) and copy the `apiKey`, `authDomain`, `projectId`, and `appId` values from its `firebaseConfig`.
-8. In Project settings → **Service accounts**, generate a new private key only after removing any key that has been exposed. Treat the downloaded JSON as a password; never commit it to the repository or paste it into chat. Add it only as the `FIREBASE_SERVICE_ACCOUNT` GitHub Actions secret.
+8. In Project settings → **Service accounts**, revoke/delete the previously uploaded key first, then generate a replacement private key. Treat the downloaded JSON as a password; never commit it to the repository or paste it into chat. Add the replacement only as the `FIREBASE_SERVICE_ACCOUNT` GitHub Actions secret.
 
 ## Part C. Add the Firebase values to the website
 
