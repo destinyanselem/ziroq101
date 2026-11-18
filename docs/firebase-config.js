@@ -5,7 +5,7 @@
 export const firebaseConfig = {
   apiKey: "PASTE_apiKey_HERE",
   authDomain: "PASTE_authDomain_HERE",
-  projectId: "PASTE_projectId_HERE",
+  projectId: "ziroq-417df",
   appId: "PASTE_appId_HERE",
 };
 
