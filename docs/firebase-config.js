@@ -9,7 +9,7 @@ export const firebaseConfig = {
   appId: "PASTE_appId_HERE",
 };
 
-// Your GitHub repository for the worker, written as  username/repository  (used by the "Start worker now" button).
-export const GITHUB_REPO = "PASTE_username/repository_HERE";
+// This repository is already set correctly for the Start worker button.
+export const GITHUB_REPO = "destinyanselem/ziroq101";
 // The branch the worker workflow lives on.
 export const GITHUB_BRANCH = "main";
