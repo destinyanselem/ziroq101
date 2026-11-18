@@ -6,7 +6,7 @@ export const firebaseConfig = {
   apiKey: "PASTE_apiKey_HERE",
   authDomain: "ziroq-417df.firebaseapp.com",
   projectId: "ziroq-417df",
-  appId: "PASTE_appId_HERE",
+  appId: "1:703506618799:web:b78d31c1ae570d3b5c375a",
 };
 
 // This repository is already set correctly for the Start worker button.
