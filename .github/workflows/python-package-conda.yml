@@ -26,6 +26,10 @@ jobs:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: worker/requirements.txt
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-dejavu-core
       - name: Install worker and test dependencies
         run: |
           python -m pip install --upgrade pip
