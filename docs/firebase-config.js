@@ -3,7 +3,7 @@
 // These values are NOT secrets (they identify your project); the security rules are what protect your data.
 
 export const firebaseConfig = {
-  apiKey: "PASTE_apiKey_HERE",
+  apiKey: "AIzaSyDovLKo3djdRbs963vqKdbj-geRWyzMTrg",
   authDomain: "ziroq-417df.firebaseapp.com",
   projectId: "ziroq-417df",
   appId: "1:703506618799:web:b78d31c1ae570d3b5c375a",
