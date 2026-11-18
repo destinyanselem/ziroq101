@@ -17,19 +17,19 @@ What you are building: a private website (GitHub Pages) → a job list (Firebase
 
 ## Part B. Firebase (job list + sign-in)
 
-1. Open console.firebase.google.com, sign in, and create or open the Firebase project for ZIROQ (the project name can be `ziroq`). Turn Google Analytics off if you do not need it.
+1. Open console.firebase.google.com and select the existing ZIROQ project with project ID `ziroq-417df`. Do not create a second Firebase project.
 2. Keep the project on the Spark (free) plan. Do not link billing.
 3. Open **Build → Authentication → Get started → Sign-in method → Google**. Enable Google sign-in, choose your support email, and save.
 4. In Authentication → **Settings → Authorized domains**, add `destinyanselem.github.io`.
 5. Open **Build → Firestore Database → Create database**. Choose a nearby region; `europe-west` is a reasonable choice from Nigeria. Start in production mode.
-6. In Firestore → **Rules**, publish the contents of `firestore.rules` after replacing the single `OWNER_EMAIL_HERE` value with the Google account email that will own ZIROQ, in lowercase. Keep the quote marks.
+6. In Firestore → **Rules**, paste the plain text contents of the repository's `firestore.rules` file (do not include Markdown fences or line numbers) and click **Publish**. The owner email is already configured in that file.
 7. Open **Project settings → General → Your apps**. Register a Web app named `ziroq-web` (or open the existing one) and copy the `apiKey`, `authDomain`, `projectId`, and `appId` values from its `firebaseConfig`.
-8. In Project settings → **Service accounts**, generate a new private key. Treat the downloaded JSON as a password; do not commit it to the repository and delete the local download after adding it to GitHub Secrets in Part G.
+8. In Project settings → **Service accounts**, generate a new private key only after removing any key that has been exposed. Treat the downloaded JSON as a password; never commit it to the repository or paste it into chat. Add it only as the `FIREBASE_SERVICE_ACCOUNT` GitHub Actions secret.
 
 ## Part C. Add the Firebase values to the website
 
 1. In GitHub, open `docs/firebase-config.js` and edit it.
-2. Replace only `PASTE_apiKey_HERE`, `PASTE_authDomain_HERE`, `PASTE_projectId_HERE`, and `PASTE_appId_HERE` with the values from Part B. Keep the quotation marks.
+2. The `projectId` is already set to `ziroq-417df`. Replace only `PASTE_apiKey_HERE`, `PASTE_authDomain_HERE`, and `PASTE_appId_HERE` with the exact values from the registered Web app's `firebaseConfig`. Keep the quotation marks.
 3. Leave `GITHUB_REPO` set to `destinyanselem/ziroq101` and `GITHUB_BRANCH` set to `main`. Commit the file.
 
 ## Part D. Publish the website
