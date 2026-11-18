@@ -137,11 +137,34 @@ def process_job(store, job, drive, env, work_root):
         shutil.rmtree(os.path.join(work_root, job_id), ignore_errors=True)
 
 
+REQUIRED_SECRETS = ["FIREBASE_SERVICE_ACCOUNT", "GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET", "GOOGLE_DRIVE_REFRESH_TOKEN"]
+
+
+def check_setup(env):
+    """Returns a plain-language list of problems with the GitHub secrets (empty list = fine)."""
+    problems = []
+    for name in REQUIRED_SECRETS:
+        if not (env.get(name) or "").strip():
+            problems.append(f"The GitHub secret {name} is empty. Add it in GitHub: Settings > Secrets and variables > Actions (SETUP_GUIDE.md, Part G).")
+    raw = (env.get("FIREBASE_SERVICE_ACCOUNT") or "").strip()
+    if raw:
+        try:
+            json.loads(raw)
+        except ValueError:
+            problems.append("The secret FIREBASE_SERVICE_ACCOUNT is not valid JSON. Paste the WHOLE text of the downloaded key file, from the first { to the last }.")
+    return problems
+
+
 def main(argv=None, env=None):
     argv = argv if argv is not None else sys.argv[1:]
     env = env if env is not None else os.environ
     mode = argv[0] if argv else "run"
     register_secrets_from_env(env)
+    problems = check_setup(env)
+    if problems:
+        for line in problems:
+            print("SETUP PROBLEM: " + line)
+        return 2
     from store import FirestoreStore
     store = FirestoreStore(json.loads(env["FIREBASE_SERVICE_ACCOUNT"]))
     store.fail_stale_jobs()
