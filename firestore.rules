@@ -3,7 +3,7 @@ rules_version = '2';
 // ZIROQ security rules. The worker uses the Admin SDK (service account), which bypasses these rules.
 // Everyone except the owner is locked out of everything.
 //
-// ONE EDIT NEEDED: replace  OWNER_EMAIL_HERE  (appears once, in isOwner) with your Gmail address, all lowercase.
+// Owner access is restricted to the Firebase account configured in isOwner.
 service cloud.firestore {
   match /databases/{database}/documents {
 
