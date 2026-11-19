@@ -62,18 +62,22 @@ jobs:
             -p 127.0.0.1:4416:4416 \
             brainicism/bgutil-ytdlp-pot-provider:2.0.2
           python - <<'PY'
-          import socket
+          import json
           import time
+          from urllib.request import urlopen
 
           for attempt in range(30):
               try:
-                  with socket.create_connection(("127.0.0.1", 4416), timeout=1):
-                      print("YouTube PO-token provider is ready.")
+                  with urlopen("http://127.0.0.1:4416/ping", timeout=2) as response:
+                      if response.status != 200:
+                          raise RuntimeError(f"unexpected provider HTTP status: {response.status}")
+                      health = json.loads(response.read().decode("utf-8"))
+                      print(f"YouTube PO-token provider is healthy (version: {health.get('version', 'unknown')}).")
                       break
-              except OSError:
+              except Exception as exc:
+                  if attempt == 29:
+                      raise SystemExit(f"YouTube PO-token provider health check failed: {exc}") from exc
                   time.sleep(1)
-          else:
-              raise SystemExit("YouTube PO-token provider did not start.")
           PY
       - name: Run one job
         env:
