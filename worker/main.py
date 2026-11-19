@@ -18,7 +18,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from progress import Progress, scrub, register_secrets_from_env   # noqa: E402
-from ytdlp_opts import validate_youtube_url, plain_download_error, write_cookie_file   # noqa: E402
+from ytdlp_opts import (YOUTUBE_FORMAT_SELECTOR, validate_youtube_url,
+                        plain_download_error, write_cookie_file)   # noqa: E402
 
 LAGOS = timezone(timedelta(hours=1))
 OUTPUT_ROOT_NAME = "ZIROQ Output"
@@ -48,7 +49,16 @@ def plain_failure(exc):
 def precheck_source(url, max_minutes, extra_opts):
     """Fails early (plain message) for live streams, access-restricted or too-long videos, before any heavy work."""
     import yt_dlp
-    opts = {"quiet": True, "no_warnings": True, "noplaylist": True, "skip_download": True}
+    opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "noplaylist": True,
+        "skip_download": True,
+        "format": YOUTUBE_FORMAT_SELECTOR,
+        # Metadata prechecks must tolerate videos for which only a fallback
+        # progressive format is exposed by the selected YouTube clients.
+        "ignore_no_formats_error": True,
+    }
     opts.update(extra_opts)
     with yt_dlp.YoutubeDL(opts) as ydl:
         meta = ydl.extract_info(url, download=False)
