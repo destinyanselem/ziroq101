@@ -13,6 +13,7 @@ PLAIN_ERRORS = {
     "video unavailable": "This video is unavailable (removed, region-blocked or private).",
     "live event": "Live streams are not supported. Try again after the stream has ended.",
     "http error 429": "YouTube is rate-limiting this server right now. Try again in an hour.",
+    "requested format is not available": "YouTube returned no downloadable formats for this video. The worker could not obtain a compatible stream; try again later or use an authorized local video file.",
 }
 
 
@@ -82,5 +83,8 @@ def ydl_extra_opts(env=None):
     import shutil
     if shutil.which("deno"):
         opts["js_runtimes"] = {"deno": {}}
+    # Current yt-dlp YouTube guidance recommends mweb with an installed PO-token provider.
+    # The GitHub Actions workflow starts the matching local bgutil provider on 127.0.0.1:4416.
+    opts["extractor_args"] = {"youtube": {"player_client": ["mweb"]}}
     opts["socket_timeout"] = 30
     return opts
