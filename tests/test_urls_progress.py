@@ -1,5 +1,6 @@
 import pytest
-from ytdlp_opts import validate_youtube_url, plain_download_error, write_cookie_file, ydl_extra_opts
+from ytdlp_opts import (YOUTUBE_FORMAT_SELECTOR, validate_youtube_url,
+                        plain_download_error, write_cookie_file, ydl_extra_opts)
 from progress import Progress, scrub, register_secret
 
 @pytest.mark.parametrize("url", ["https://www.youtube.com/watch?v=dQw4w9WgXcQ", "youtu.be/dQw4w9WgXcQ", "https://m.youtube.com/shorts/dQw4w9WgXcQ",
@@ -57,7 +58,11 @@ def test_progress_scrubs_tail():
     assert "AIza" not in str(pushes[-1])
 
 
-def test_ydl_extra_opts_select_mweb_for_po_token_provider():
+def test_ydl_extra_opts_keep_mweb_and_add_notebook_fallback_clients():
     opts = ydl_extra_opts({})
-    assert opts["extractor_args"]["youtube"]["player_client"] == ["mweb"]
+    assert opts["extractor_args"]["youtube"]["player_client"] == ["mweb", "tv", "web_safari"]
     assert opts["socket_timeout"] == 30
+
+
+def test_youtube_format_selector_has_progressive_fallback():
+    assert YOUTUBE_FORMAT_SELECTOR == "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best"
