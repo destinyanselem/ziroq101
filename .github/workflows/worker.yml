@@ -1,7 +1,7 @@
 name: ZIROQ worker
 
 # Runs when you tap "Start worker now" on the website, and also every 15 minutes to pick up queued jobs.
-# The first job ("check") is tiny and finishes in seconds when nothing is queued, so free minutes are not wasted.
+# Scheduled runs use a lightweight queue check. Manual starts skip that extra runner so the processing job can be allocated immediately.
 on:
   workflow_dispatch:
   schedule:
@@ -13,6 +13,7 @@ concurrency:
 
 jobs:
   check:
+    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -38,7 +39,7 @@ jobs:
 
   process:
     needs: check
-    if: needs.check.outputs.has_job == 'true'
+    if: always() && (github.event_name == 'workflow_dispatch' || needs.check.outputs.has_job == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:

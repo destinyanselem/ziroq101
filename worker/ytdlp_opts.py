@@ -91,6 +91,9 @@ def ydl_extra_opts(env=None):
     # Mirror the notebook configuration that successfully downloaded the target video.
     # mweb remains first (the recommended PO-token-provider client); the other clients
     # provide additional compatible fallbacks when a client exposes no usable formats.
-    opts["extractor_args"] = {"youtube": {"player_client": ["mweb", "tv", "web_safari"]}}
+    opts["extractor_args"] = {
+        "youtube": {"player_client": ["mweb", "tv", "web_safari"]},
+        "youtubepot-bgutilhttp": {"base_url": "http://127.0.0.1:4416"},
+    }
     opts["socket_timeout"] = 30
     return opts
