@@ -3,10 +3,13 @@
 // These values are NOT secrets (they identify your project); the security rules are what protect your data.
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyDFAMxRxGS2BYBxZ74pGqTtdJUNcbvL9CI",
+  apiKey: "AIzaSyCufxB9AsxXmf2GDI3Lx2ePRId020nfnow",
   authDomain: "ziroq-417df.firebaseapp.com",
   projectId: "ziroq-417df",
   appId: "1:54140936981:web:53b1c08c3d8d45ba74bf1c",
+  databaseURL: "https://ziroq-417df-default-rtdb.firebaseio.com",
+  storageBucket: "ziroq-417df.firebasestorage.app",
+  messagingSenderId: "54140936981",
 };
 
 // This repository is already set correctly for the Start worker button.
