@@ -32,7 +32,7 @@ def test_cookie_file(tmp_path):
     summary = cookie_file_summary(p)
     assert summary == {"valid_rows": 1, "youtube_google_rows": 1, "has_session_cookie": False}
     signed_in = write_cookie_file(
-        "# Netscape HTTP Cookie File\\n.youtube.com\\tTRUE\\t/\\tTRUE\\t0\\tSAPISID\\tsecret-value",
+        "# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tSAPISID\tsecret-value",
         str(tmp_path),
     )
     assert cookie_file_summary(signed_in) == {
