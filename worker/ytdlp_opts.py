@@ -88,11 +88,10 @@ def ydl_extra_opts(env=None):
     import shutil
     if shutil.which("deno"):
         opts["js_runtimes"] = {"deno": {}}
-    # Mirror the notebook configuration that successfully downloaded the target video.
-    # mweb remains first (the recommended PO-token-provider client); the other clients
-    # provide additional compatible fallbacks when a client exposes no usable formats.
+    # Keep yt-dlp's maintained default client set, then add mweb as a PO-token-backed
+    # fallback. Hard-pinning tv/web_safari can produce zero formats as YouTube changes.
     opts["extractor_args"] = {
-        "youtube": {"player_client": ["mweb", "tv", "web_safari"]},
+        "youtube": {"player_client": ["default", "mweb"]},
         "youtubepot-bgutilhttp": {"base_url": "http://127.0.0.1:4416"},
     }
     opts["socket_timeout"] = 30

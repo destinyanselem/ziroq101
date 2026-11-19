@@ -58,9 +58,9 @@ def test_progress_scrubs_tail():
     assert "AIza" not in str(pushes[-1])
 
 
-def test_ydl_extra_opts_keep_mweb_and_add_notebook_fallback_clients():
+def test_ydl_extra_opts_keep_default_clients_and_add_mweb_pot_fallback():
     opts = ydl_extra_opts({})
-    assert opts["extractor_args"]["youtube"]["player_client"] == ["mweb", "tv", "web_safari"]
+    assert opts["extractor_args"]["youtube"]["player_client"] == ["default", "mweb"]
     assert opts["extractor_args"]["youtubepot-bgutilhttp"]["base_url"] == "http://127.0.0.1:4416"
     assert opts["socket_timeout"] == 30
 
