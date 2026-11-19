@@ -2,3 +2,14 @@ __pycache__/
 *.pyc
 .pytest_cache/
 node_modules/
+
+# Local credentials and private account exports
+.env
+.env.*
+!.env.example
+*service-account*.json
+*firebase-adminsdk*.json
+*oauth-client*.json
+*oauth-credentials*.json
+cookies.txt
+*youtube-cookies*.txt
