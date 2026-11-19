@@ -1,5 +1,5 @@
 import pytest
-from ytdlp_opts import validate_youtube_url, plain_download_error, write_cookie_file
+from ytdlp_opts import validate_youtube_url, plain_download_error, write_cookie_file, ydl_extra_opts
 from progress import Progress, scrub, register_secret
 
 @pytest.mark.parametrize("url", ["https://www.youtube.com/watch?v=dQw4w9WgXcQ", "youtu.be/dQw4w9WgXcQ", "https://m.youtube.com/shorts/dQw4w9WgXcQ",
@@ -18,6 +18,7 @@ def test_rejected(url):
 def test_plain_errors():
     assert "cookies" in plain_download_error("ERROR: Sign in to confirm you're not a bot").lower()
     assert "private" in plain_download_error("Private video").lower()
+    assert "downloadable formats" in plain_download_error("Requested format is not available").lower()
 
 def test_cookie_file(tmp_path):
     assert write_cookie_file("", str(tmp_path)) is None
@@ -54,3 +55,9 @@ def test_progress_scrubs_tail():
     pushes = []; p = Progress(pushes.append, min_interval=0)
     p.line("using AIzaSyA1234567890abcdefghijklmnop now")
     assert "AIza" not in str(pushes[-1])
+
+
+def test_ydl_extra_opts_select_mweb_for_po_token_provider():
+    opts = ydl_extra_opts({})
+    assert opts["extractor_args"]["youtube"]["player_client"] == ["mweb"]
+    assert opts["socket_timeout"] == 30
