@@ -56,6 +56,25 @@ jobs:
         with:
           deno-version: v2.x
       - run: pip install -r worker/requirements.txt
+      - name: Start local YouTube PO-token provider
+        run: |
+          docker run --name ziroq-pot-provider -d --init \
+            -p 127.0.0.1:4416:4416 \
+            brainicism/bgutil-ytdlp-pot-provider:2.0.2
+          python - <<'PY'
+          import socket
+          import time
+
+          for attempt in range(30):
+              try:
+                  with socket.create_connection(("127.0.0.1", 4416), timeout=1):
+                      print("YouTube PO-token provider is ready.")
+                      break
+              except OSError:
+                  time.sleep(1)
+          else:
+              raise SystemExit("YouTube PO-token provider did not start.")
+          PY
       - name: Run one job
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
