@@ -140,10 +140,15 @@ def process_job(store, job, drive, env, work_root):
 REQUIRED_SECRETS = ["FIREBASE_SERVICE_ACCOUNT", "GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET", "GOOGLE_DRIVE_REFRESH_TOKEN"]
 
 
-def check_setup(env):
-    """Returns a plain-language list of problems with the GitHub secrets (empty list = fine)."""
+def check_setup(env, mode="run"):
+    """Validate only the credentials needed by the selected worker mode.
+
+    The lightweight queue poller uses Firebase only. Google Drive OAuth is
+    required only when a queued job is actually processed.
+    """
     problems = []
-    for name in REQUIRED_SECRETS:
+    required = ["FIREBASE_SERVICE_ACCOUNT"] if mode == "check" else REQUIRED_SECRETS
+    for name in required:
         if not (env.get(name) or "").strip():
             problems.append(f"The GitHub secret {name} is empty. Add it in GitHub: Settings > Secrets and variables > Actions (SETUP_GUIDE.md, Part G).")
     raw = (env.get("FIREBASE_SERVICE_ACCOUNT") or "").strip()
@@ -160,7 +165,7 @@ def main(argv=None, env=None):
     env = env if env is not None else os.environ
     mode = argv[0] if argv else "run"
     register_secrets_from_env(env)
-    problems = check_setup(env)
+    problems = check_setup(env, mode=mode)
     if problems:
         for line in problems:
             print("SETUP PROBLEM: " + line)
