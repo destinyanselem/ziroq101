@@ -19,6 +19,7 @@ sys.path.insert(0, HERE)
 import engine_loader as L                      # noqa: E402
 from groq_asr import GroqClient, HybridASR, load_groq_keys   # noqa: E402
 from progress import Progress, scrub, register_secrets_from_env   # noqa: E402
+from ytdlp_opts import YOUTUBE_FORMAT_SELECTOR   # noqa: E402
 
 CELL4_DRIVE_REPLACEMENT = '''# CELL 3 (worker) - local staging root instead of a Colab Drive mount
 DRIVE_AVAILABLE = True
@@ -68,7 +69,8 @@ def build_patches():
         ('USER_INPUT = (os.environ.get("ZIROQ_URL", "").strip() or input("YouTube URL or local video path: ")).strip().strip("\\"\'")',
          'USER_INPUT = os.environ.get("ZIROQ_URL", "").strip().strip("\\"\'")'),
         ('with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True, "noplaylist": True, "skip_download": True}) as ydl:',
-         'with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True, "noplaylist": True, "skip_download": True, **_WORKER_YDL_EXTRA()}) as ydl:'),
+         'with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True, "noplaylist": True, "skip_download": True, "format": YOUTUBE_FORMAT_SELECTOR, "ignore_no_formats_error": True, **_WORKER_YDL_EXTRA()}) as ydl:'),
+        ('"format": "bv*+ba/b",', '"format": YOUTUBE_FORMAT_SELECTOR,\n            "ignore_no_formats_error": True,'),
         ('"merge_output_format": "mp4", "retries": 5,\n        }',
          '"merge_output_format": "mp4", "retries": 5, **_WORKER_YDL_EXTRA(),\n        }'),
     ]
@@ -89,6 +91,7 @@ def build_patches():
 def make_after_hooks(progress, cfg_overrides, asr_state):
     def after_cell1(ns):
         ns["CFG"].update(cfg_overrides)
+        ns["YOUTUBE_FORMAT_SELECTOR"] = YOUTUBE_FORMAT_SELECTOR
         orig_log = ns["log"]
 
         def log(stage, message):
