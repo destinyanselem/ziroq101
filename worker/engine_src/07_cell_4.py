@@ -82,7 +82,7 @@ else:
         opts = {
             "quiet": True, "no_warnings": True, "noplaylist": True,
             "outtmpl": os.path.join(SOURCE_DIR, "source.%(ext)s"),
-            "format": "bv*[height<=1080]+ba/b[height<=1080]/b",
+            "format": "bv*+ba/b",
             "merge_output_format": "mp4", "retries": 5,
         }
         log("download", "downloading source with yt-dlp")
