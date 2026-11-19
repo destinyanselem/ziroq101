@@ -93,12 +93,12 @@ def cookie_file_summary(path):
     try:
         with open(path, "r", encoding="utf-8", errors="replace") as handle:
             for raw in handle:
-                line = raw.rstrip("\\r\\n")
+                line = raw.rstrip("\r\n")
                 if not line or line.startswith("#") and not line.startswith("#HttpOnly_"):
                     continue
                 if line.startswith("#HttpOnly_"):
                     line = line[len("#HttpOnly_"):]
-                fields = line.split("\\t")
+                fields = line.split("\t")
                 if len(fields) != 7:
                     continue
                 valid_rows += 1
