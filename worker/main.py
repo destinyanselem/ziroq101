@@ -30,7 +30,7 @@ def plain_failure(exc):
     low = text.lower()
     if "invalid_grant" in low or "refresh token" in low:
         return text
-    if any(k in low for k in ("sign in to confirm", "not a bot", "private video", "members-only", "video unavailable", "live event", "http error 429")):
+    if any(k in low for k in ("sign in to confirm", "not a bot", "private video", "members-only", "video unavailable", "live event", "http error 429", "requested format is not available")):
         return plain_download_error(text)
     if "only youtube" in low or "valid youtube" in low or "youtube video link" in low or "file paths" in low or "playlist" in low:
         return text
