@@ -4,6 +4,11 @@ import re
 import tempfile
 from urllib.parse import parse_qs, urlparse
 
+# Keep this selector aligned with the tested notebook fallback: prefer separate
+# video/audio streams up to 1080p, then fall back to a combined progressive stream.
+YOUTUBE_FORMAT_SELECTOR = "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best"
+
+
 PLAIN_ERRORS = {
     "sign in to confirm": "YouTube blocked the download from the cloud server (it asked the server to prove it is not a bot). "
                           "Refresh the cookies secret: see SETUP GUIDE, section 'Refresh YouTube cookies'.",
@@ -83,8 +88,9 @@ def ydl_extra_opts(env=None):
     import shutil
     if shutil.which("deno"):
         opts["js_runtimes"] = {"deno": {}}
-    # Current yt-dlp YouTube guidance recommends mweb with an installed PO-token provider.
-    # The GitHub Actions workflow starts the matching local bgutil provider on 127.0.0.1:4416.
-    opts["extractor_args"] = {"youtube": {"player_client": ["mweb"]}}
+    # Mirror the notebook configuration that successfully downloaded the target video.
+    # mweb remains first (the recommended PO-token-provider client); the other clients
+    # provide additional compatible fallbacks when a client exposes no usable formats.
+    opts["extractor_args"] = {"youtube": {"player_client": ["mweb", "tv", "web_safari"]}}
     opts["socket_timeout"] = 30
     return opts
