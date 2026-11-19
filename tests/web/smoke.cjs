@@ -40,7 +40,8 @@ const CONFIG = `export const firebaseConfig={apiKey:'x',authDomain:'x',projectId
   page.on("pageerror", (e) => log(false, "page error: " + e.message));
   await page.route(/gstatic\.com/, (r) => { const u = r.request().url(); const body = u.includes("firebase-app") ? FAKE_APP : u.includes("firebase-auth") ? FAKE_AUTH : FAKE_FS; r.fulfill({ contentType: "text/javascript", body }); });
   await page.route("**/firebase-config.js", (r) => r.fulfill({ contentType: "text/javascript", body: CONFIG }));
-  await page.route("https://api.github.com/**", (r) => r.fulfill({ status: 204, body: "" }));
+  let githubDispatches = 0;
+  await page.route("https://api.github.com/**", (r) => { githubDispatches += 1; return r.fulfill({ status: 204, body: "" }); });
 
   await page.goto(base); await page.waitForSelector("#signin");
   await page.screenshot({ path: OUT + "/01_signin.png" });
@@ -69,11 +70,14 @@ const CONFIG = `export const firebaseConfig={apiKey:'x',authDomain:'x',projectId
   const w = await page.evaluate(() => window.__writes.find((x) => x.op === "add"));
   const allowed = ["url", "origin", "status", "progress", "stage", "createdAt", "updatedAt", "tail"];
   log(w && Object.keys(w.data).every((k) => allowed.includes(k)) && w.data.status === "queued" && w.data.origin === "manual" && w.data.progress === 0 && w.data.url.length <= 300, "new job document matches the security-rule shape: " + JSON.stringify(w && w.data));
-  // start worker without token -> guidance; with token -> dispatch
-  await page.click("#start"); log((await page.textContent("#start-msg")).includes("token"), "Start worker without token explains what to do");
+  log(githubDispatches === 0 && (await page.textContent("#url-msg")).includes("No GitHub token"), "job is queued safely when no dispatch token is saved");
+  // Save a repository-scoped Actions token, then submit another job: submission must dispatch immediately.
+  await page.click("#start"); log((await page.textContent("#start-msg")).includes("GitHub token"), "Start worker without token explains what to do");
   await page.click("[data-tab=settings]"); await page.fill("#ghtoken", "github_pat_dummy"); await page.click("#save-token");
-  await page.click("[data-tab=make]"); await page.click("#start"); await page.waitForTimeout(150);
-  log((await page.textContent("#start-msg")).includes("Worker started"), "Start worker dispatches (fake 204)");
+  await page.click("[data-tab=make]"); await page.fill("#url", "youtu.be/abcdefghijk"); await page.click("#make"); await page.waitForTimeout(150);
+  log(githubDispatches === 1 && (await page.textContent("#url-msg")).includes("immediate worker start was accepted"), "submitting a job automatically dispatches the worker (fake 204)");
+  await page.click("#start"); await page.waitForTimeout(150);
+  log(githubDispatches === 2 && (await page.textContent("#start-msg")).includes("accepted"), "Start worker button still dispatches manually as a fallback");
 
   // clips: pack viewer + copy + shortlist rule shape
   await page.click("[data-tab=clips]");
