@@ -67,6 +67,7 @@ async function boot() {
   let unsubs = [];
   let settings = { geminiConsent: false, requireApproval: true, discoveryEnabled: false, maxSourceMinutes: 90 };
   let lastJobs = [];
+  let workerDispatchNotice = "";
 
   $("signin").onclick = async () => {
     $("signin-msg").textContent = "";
@@ -111,6 +112,38 @@ async function boot() {
     }, "clips");
   }
 
+  // ---------------------------------------------------------------- worker dispatch
+  async function dispatchWorkerNow() {
+    const token = safeGet("ziroq_gh_token");
+    if (!token) {
+      return {
+        ok: false,
+        reason: "missing-token",
+        message: "No GitHub token is saved in this browser. Save a fine-grained token in Settings with Actions: Read and write permission for this repository. The scheduled worker remains the fallback (about every 15 minutes).",
+      };
+    }
+
+    try {
+      const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/worker.yml/dispatches`, {
+        method: "POST",
+        headers: { Authorization: "Bearer " + token, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+        body: JSON.stringify({ ref: GITHUB_BRANCH }),
+      });
+      if (r.status === 204) {
+        return { ok: true, reason: "accepted", message: "GitHub accepted the worker start request. Open Jobs to watch the job move from Waiting to Working." };
+      }
+      if (r.status === 401 || r.status === 403) {
+        return { ok: false, reason: "token-rejected", message: "GitHub rejected the saved token. Replace it in Settings with a fine-grained token that has Actions: Read and write permission for this repository." };
+      }
+      if (r.status === 404) {
+        return { ok: false, reason: "not-found", message: "GitHub could not find the repository or worker workflow. Check the repository and branch settings." };
+      }
+      return { ok: false, reason: "http-error", message: "GitHub could not start the worker (HTTP " + r.status + "). The scheduled worker remains the fallback." };
+    } catch (e) {
+      return { ok: false, reason: "network-error", message: "Could not reach GitHub to start the worker: " + e.message + ". The scheduled worker remains the fallback." };
+    }
+  }
+
   // ---------------------------------------------------------------- make
   $("make").onclick = async () => {
     const msg = $("url-msg"); msg.className = "msg"; msg.textContent = "";
@@ -120,26 +153,34 @@ async function boot() {
     try {
       const now = Date.now() / 1000;
       await S.addDoc(S.collection(db, "jobs"), { url, origin: "manual", status: "queued", progress: 0, stage: "queued", createdAt: now, updatedAt: now, tail: [] });
-      msg.className = "msg ok"; msg.textContent = "Added. The worker starts within about " + WORKER_POLL_MINUTES + " minutes, or tap Start worker now.";
       $("url").value = "";
-    } catch (e) { msg.className = "msg bad"; msg.textContent = "Could not add the job: " + (e.code === "permission-denied" ? "this account is not the owner." : e.message); }
+      msg.className = "msg ok"; msg.textContent = "Job added. Requesting an immediate worker start…";
+      const startResult = await dispatchWorkerNow();
+      workerDispatchNotice = startResult.ok
+        ? startResult.message
+        : "Job is queued. " + startResult.message;
+      msg.textContent = startResult.ok
+        ? "Job added. An immediate worker start was accepted by GitHub. Track it in Jobs."
+        : "Job added, but an immediate start was not confirmed. " + startResult.message;
+      if (!startResult.ok) msg.className = "msg";
+      renderBanner();
+    } catch (e) {
+      msg.className = "msg bad";
+      msg.textContent = "Could not add the job: " + (e.code === "permission-denied" ? "this account is not the owner." : e.message);
+    }
     $("make").disabled = false;
   };
 
   $("start").onclick = async () => {
-    const out = $("start-msg"); const token = safeGet("ziroq_gh_token");
-    if (!token) { out.textContent = "Add your GitHub token in Settings first (optional). Without it, jobs still start by themselves within about " + WORKER_POLL_MINUTES + " minutes."; return; }
-    $("start").disabled = true; out.textContent = "Asking GitHub to start the worker…";
-    try {
-      const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/worker.yml/dispatches`, {
-        method: "POST", headers: { Authorization: "Bearer " + token, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
-        body: JSON.stringify({ ref: GITHUB_BRANCH }),
-      });
-      out.textContent = r.status === 204 ? "Worker started. Open the Jobs tab to watch it (it can take a minute to appear)."
-        : r.status === 401 || r.status === 403 ? "GitHub refused the token. Create a new one with permission 'Actions: Read and write' for your worker repository."
-        : r.status === 404 ? "GitHub could not find the repository or workflow. Check GITHUB_REPO in docs/firebase-config.js."
-        : "GitHub answered with code " + r.status + ".";
-    } catch (e) { out.textContent = "Could not reach GitHub: " + e.message; }
+    const out = $("start-msg");
+    $("start").disabled = true;
+    out.textContent = "Asking GitHub to start the worker…";
+    const result = await dispatchWorkerNow();
+    out.textContent = result.message;
+    workerDispatchNotice = result.ok
+      ? result.message
+      : "A job is waiting. " + result.message;
+    renderBanner();
     $("start").disabled = false;
   };
 
@@ -152,9 +193,9 @@ async function boot() {
     } else if (waiting) {
       const mins = Math.round((Date.now() / 1000 - waiting.createdAt) / 60);
       b.hidden = false;
-      b.textContent = mins > WORKER_POLL_MINUTES + 5
-        ? "A job has been waiting " + mins + " minutes. Tap Start worker now, or check that the GitHub workflow is enabled."
-        : "A job is waiting for the worker. It starts within about " + WORKER_POLL_MINUTES + " minutes, or tap Start worker now.";
+      b.textContent = workerDispatchNotice || (mins > WORKER_POLL_MINUTES + 5
+        ? "A job has been waiting " + mins + " minutes. Check the saved GitHub token or the worker workflow."
+        : "A job is waiting. Save a GitHub Actions token in Settings to request an immediate worker start automatically; otherwise the scheduled worker is the fallback (about every " + WORKER_POLL_MINUTES + " minutes).");
     }
   }
 
