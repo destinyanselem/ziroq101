@@ -65,7 +65,7 @@ async function boot() {
   const auth = A.getAuth(app);
   const db = S.getFirestore(app);
   let unsubs = [];
-  let settings = { geminiConsent: false, requireApproval: true, discoveryEnabled: false, maxSourceMinutes: 90 };
+  let settings = { geminiConsent: false, requireApproval: true, discoveryEnabled: false, maxSourceMinutes: 180 };
   let lastJobs = [];
   let workerDispatchNotice = "";
 
@@ -292,7 +292,7 @@ async function boot() {
   function renderSettings() {
     $("consent").checked = !!settings.geminiConsent;
     $("consent-state").textContent = settings.geminiConsent ? "Gemini is ON (agreed " + (settings.geminiConsentAt ? ago(settings.geminiConsentAt) : "earlier") + ")." : "Gemini is OFF. Clips are made with local tools only.";
-    $("maxmin").value = settings.maxSourceMinutes || 90;
+    $("maxmin").value = settings.maxSourceMinutes || 180;
     $("approval").checked = settings.requireApproval !== false;
   }
   $("save-settings").onclick = async () => {

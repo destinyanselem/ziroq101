@@ -3,7 +3,7 @@
   python main.py check     -> exit code 0 if a job is waiting, 10 if the queue is empty (fast; used by the workflow's first step)
   python main.py run       -> fail stale jobs, claim ONE job, run the engine, upload to Drive, write clip documents
 Environment (GitHub Actions secrets): FIREBASE_SERVICE_ACCOUNT (JSON), GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET,
-GOOGLE_DRIVE_REFRESH_TOKEN, GROQ_API_KEY_1.., GEMINI_API_KEY_1.., YT_COOKIES (optional), ZIROQ_MAX_SOURCE_MIN (default 90).
+GOOGLE_DRIVE_REFRESH_TOKEN, GROQ_API_KEY_1.., GEMINI_API_KEY_1.., YT_COOKIES (optional), ZIROQ_MAX_SOURCE_MIN (default 180).
 """
 import json
 import os
@@ -100,7 +100,7 @@ def process_job(store, job, drive, env, work_root):
             os.environ["ZIROQ_COOKIE_FILE"] = cookie_path
         from ytdlp_opts import ydl_extra_opts
         progress.line("checking the video")
-        meta = precheck_source(canonical, int(env.get("ZIROQ_MAX_SOURCE_MIN") or settings.get("maxSourceMinutes", 90)), ydl_extra_opts(env))
+        meta = precheck_source(canonical, int(env.get("ZIROQ_MAX_SOURCE_MIN") or settings.get("maxSourceMinutes", 180)), ydl_extra_opts(env))
         store.update_job(job_id, {"title": meta["title"][:150], "channel": meta["channel"][:100], "sourceId": video_id})
 
         job_dir = os.path.join(work_root, job_id)
