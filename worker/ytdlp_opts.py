@@ -19,6 +19,7 @@ PLAIN_ERRORS = {
     "live event": "Live streams are not supported. Try again after the stream has ended.",
     "http error 429": "YouTube is rate-limiting this server right now. Try again in an hour.",
     "requested format is not available": "YouTube returned no downloadable formats for this video. The worker could not obtain a compatible stream; try again later or use an authorized local video file.",
+    "no video formats found": "YouTube required sign-in on the cloud worker and returned no video formats. The YT_COOKIES secret was passed, but YouTube may not accept its session. Refresh it with a fresh signed-in YouTube cookies.txt export (Netscape format), then retry. Never share cookie contents.",
 }
 
 
@@ -76,6 +77,44 @@ def write_cookie_file(cookies_text, directory=None):
         f.write(text + "\n")
     os.chmod(path, 0o600)
     return path
+
+
+def cookie_file_summary(path):
+    """Return non-sensitive diagnostics about a Netscape cookie file; never expose cookie values."""
+    if not path or not os.path.isfile(path):
+        return {"valid_rows": 0, "youtube_google_rows": 0, "has_session_cookie": False}
+    valid_rows = 0
+    youtube_google_rows = 0
+    has_session_cookie = False
+    session_names = {
+        "SID", "HSID", "SSID", "APISID", "SAPISID", "LOGIN_INFO",
+        "__Secure-1PSID", "__Secure-3PSID", "__Secure-1PAPISID", "__Secure-3PAPISID",
+    }
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as handle:
+            for raw in handle:
+                line = raw.rstrip("\r\n")
+                if not line or line.startswith("#") and not line.startswith("#HttpOnly_"):
+                    continue
+                if line.startswith("#HttpOnly_"):
+                    line = line[len("#HttpOnly_"):]
+                fields = line.split("\t")
+                if len(fields) != 7:
+                    continue
+                valid_rows += 1
+                domain = fields[0].lower().lstrip(".")
+                name = fields[5]
+                if domain == "youtube.com" or domain.endswith(".youtube.com") or domain == "google.com" or domain.endswith(".google.com"):
+                    youtube_google_rows += 1
+                    if name in session_names:
+                        has_session_cookie = True
+    except OSError:
+        return {"valid_rows": 0, "youtube_google_rows": 0, "has_session_cookie": False}
+    return {
+        "valid_rows": valid_rows,
+        "youtube_google_rows": youtube_google_rows,
+        "has_session_cookie": has_session_cookie,
+    }
 
 
 def ydl_extra_opts(env=None):

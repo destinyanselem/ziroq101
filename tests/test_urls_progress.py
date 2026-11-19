@@ -1,6 +1,6 @@
 import pytest
 from ytdlp_opts import (YOUTUBE_FORMAT_SELECTOR, validate_youtube_url,
-                        plain_download_error, write_cookie_file, ydl_extra_opts)
+                        plain_download_error, write_cookie_file, cookie_file_summary, ydl_extra_opts)
 from progress import Progress, scrub, register_secret
 
 @pytest.mark.parametrize("url", ["https://www.youtube.com/watch?v=dQw4w9WgXcQ", "youtu.be/dQw4w9WgXcQ", "https://m.youtube.com/shorts/dQw4w9WgXcQ",
@@ -20,6 +20,7 @@ def test_plain_errors():
     assert "cookies" in plain_download_error("ERROR: Sign in to confirm you're not a bot").lower()
     assert "private" in plain_download_error("Private video").lower()
     assert "downloadable formats" in plain_download_error("Requested format is not available").lower()
+    assert "yt_cookies" in plain_download_error("ERROR: No video formats found!").lower()
 
 def test_cookie_file(tmp_path):
     assert write_cookie_file("", str(tmp_path)) is None
@@ -28,6 +29,16 @@ def test_cookie_file(tmp_path):
     p = write_cookie_file("# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tA\tB", str(tmp_path))
     import os, stat
     assert stat.S_IMODE(os.stat(p).st_mode) == 0o600
+    summary = cookie_file_summary(p)
+    assert summary == {"valid_rows": 1, "youtube_google_rows": 1, "has_session_cookie": False}
+    signed_in = write_cookie_file(
+        "# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tSAPISID\tsecret-value",
+        str(tmp_path),
+    )
+    assert cookie_file_summary(signed_in) == {
+        "valid_rows": 1, "youtube_google_rows": 1, "has_session_cookie": True
+    }
+    assert "secret-value" not in str(cookie_file_summary(signed_in))
 
 def test_scrub():
     register_secret("supersecretvalue123")

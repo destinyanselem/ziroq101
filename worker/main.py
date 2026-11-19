@@ -19,7 +19,7 @@ sys.path.insert(0, HERE)
 
 from progress import Progress, scrub, register_secrets_from_env   # noqa: E402
 from ytdlp_opts import (YOUTUBE_FORMAT_SELECTOR, validate_youtube_url,
-                        plain_download_error, write_cookie_file)   # noqa: E402
+                        plain_download_error, write_cookie_file, cookie_file_summary)   # noqa: E402
 
 LAGOS = timezone(timedelta(hours=1))
 OUTPUT_ROOT_NAME = "ZIROQ Output"
@@ -31,7 +31,7 @@ def plain_failure(exc):
     low = text.lower()
     if "invalid_grant" in low or "refresh token" in low:
         return text
-    if any(k in low for k in ("sign in to confirm", "not a bot", "private video", "members-only", "video unavailable", "live event", "http error 429", "requested format is not available")):
+    if any(k in low for k in ("sign in to confirm", "not a bot", "private video", "members-only", "video unavailable", "live event", "http error 429", "requested format is not available", "no video formats found")):
         return plain_download_error(text)
     if "only youtube" in low or "valid youtube" in low or "youtube video link" in low or "file paths" in low or "playlist" in low:
         return text
@@ -108,6 +108,16 @@ def process_job(store, job, drive, env, work_root):
         cookie_path = write_cookie_file(env.get("YT_COOKIES", ""), directory=work_root)
         if cookie_path:
             os.environ["ZIROQ_COOKIE_FILE"] = cookie_path
+            cookie_info = cookie_file_summary(cookie_path)
+            session_state = "detected" if cookie_info["has_session_cookie"] else "not detected"
+            progress.line(
+                "YouTube cookie check: "
+                f"{cookie_info['valid_rows']} valid rows; "
+                f"{cookie_info['youtube_google_rows']} YouTube/Google rows; "
+                f"signed-in session cookie {session_state}. Values are never logged."
+            )
+        else:
+            progress.line("YouTube cookie check: YT_COOKIES is empty; public cloud downloads may be blocked by YouTube sign-in checks.")
         from ytdlp_opts import ydl_extra_opts
         progress.line("checking the video")
         meta = precheck_source(canonical, int(env.get("ZIROQ_MAX_SOURCE_MIN") or settings.get("maxSourceMinutes", 180)), ydl_extra_opts(env))
