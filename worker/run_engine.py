@@ -70,7 +70,7 @@ def build_patches():
          'USER_INPUT = os.environ.get("ZIROQ_URL", "").strip().strip("\\"\'")'),
         ('with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True, "noplaylist": True, "skip_download": True}) as ydl:',
          'with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True, "noplaylist": True, "skip_download": True, "format": YOUTUBE_FORMAT_SELECTOR, "ignore_no_formats_error": True, **_WORKER_YDL_EXTRA()}) as ydl:'),
-        ('"format": "bv*+ba/b",', '"format": YOUTUBE_FORMAT_SELECTOR,\n            "ignore_no_formats_error": True,'),
+        ('"format": "bv*+ba/b",', '"format": YOUTUBE_FORMAT_SELECTOR,\n            "ignore_no_formats_error": True,\n            "verbose": True, "quiet": False, "no_warnings": False,'),
         ('"merge_output_format": "mp4", "retries": 5,\n        }',
          '"merge_output_format": "mp4", "retries": 5, **_WORKER_YDL_EXTRA(),\n        }'),
     ]
